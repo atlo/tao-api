@@ -23,13 +23,12 @@ function indexDocument (client, body, index) {
   })
 }
 
-function search (client, query) {
+function search (client, query, from = 0) {
   return client.search({
     index: 'tao',
-    //type: 'file',
     body: {
-      /* size: 10,
-      from: 0, */
+      from,
+      size: 10,
       query: {
         match: {
           content: query
