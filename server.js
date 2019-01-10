@@ -9,21 +9,29 @@ const client = new elasticsearch.Client({
   host: process.env.HOST,
   log: process.env.LOG
 })
+const port = process.env.PORT
 
 app.use(cors())
 
-app.get('/search/:query', function (req, res) {
-  console.log({query: req.params.query})
-  search(client, req.params.query)
+app.get('/search', function (req, res) {
+  const {query, from} = req.query
+  const resultObject = {
+    total: 0,
+    files: []
+  }
+
+  search(client, query, from)
     .then(results => {
-      const formattedResults = results.hits.hits.map(hit => {
+      resultObject.files = results.hits.hits.map(hit => {
         return {
           fileName: hit._source.fileName,
           highlights: hit.highlight.content
         }
       })
 
-      res.status(200).json({results: formattedResults})
+      resultObject.total = results.hits.total
+      
+      res.status(200).json(resultObject)
     })
     .catch(error => res.status(500).json({error: error.message}))
 })
@@ -32,4 +40,4 @@ app.get('*', function (req, res) {
   res.status(404).json({error: 'Resource not found'})
 })
 
-app.listen(process.env.PORT, () => console.log('Server is up and running'))
+app.listen(port, () => console.log(`Server is up and running ${port}`))
