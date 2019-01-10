@@ -5,7 +5,7 @@ const {indexExists, createIndex, indexDocument, deleteDocuments, deleteIndex} = 
 
 function cleanText (text) {
   return text
-    .replace(/<style[^>]*>\K[^<]*/ig, '')
+    .replace(/<style type=.+>(.|\n)*?<\/style>/ig, '')
     .replace(/(<([^>]+)>|\r\n|\n|\r|\&nbsp;|\undefined)/ig, '')
     .trim()
 }
@@ -59,7 +59,6 @@ function setup (client, path) {
       console.log(`${files.length} to be indexed.`)
       return indexDocuments(client, files)
     })
-    .then(() => console.log('Setup successfully finished.'))
     .catch(error => error)
 }
 
