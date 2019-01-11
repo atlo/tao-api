@@ -1,7 +1,7 @@
-const {promisify} = require('util')
+const { promisify } = require('util')
 const glob = promisify(require('glob'))
-const {fs} = require('mz')
-const {indexExists, createIndex, indexDocument, deleteDocuments, deleteIndex} = require('./elasticsearch')
+const { fs } = require('mz')
+const { indexExists, createIndex, indexDocument, deleteDocuments, deleteIndex } = require('./elasticsearch')
 
 function cleanText (text) {
   return text

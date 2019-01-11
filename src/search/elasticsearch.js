@@ -1,17 +1,17 @@
 function deleteIndex (client) {
-  return client.indices.delete({index: 'tao', ignoreUnavailable: true})
+  return client.indices.delete({ index: 'tao', ignoreUnavailable: true })
 }
 
 function deleteDocuments (client, q = '*') {
-  return client.deleteByQuery({index: 'tao', q, ignoreUnavailable: true})
+  return client.deleteByQuery({ index: 'tao', q, ignoreUnavailable: true })
 }
 
 function indexExists (client) {
-  return client.indices.exists({index: 'tao'})
+  return client.indices.exists({ index: 'tao' })
 }
 
 function createIndex (client) {
-  return client.indices.create({index: 'tao'})
+  return client.indices.create({ index: 'tao' })
 }
 
 function indexDocument (client, body, index) {
