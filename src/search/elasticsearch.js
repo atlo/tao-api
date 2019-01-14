@@ -14,12 +14,32 @@ function createIndex (client) {
   return client.indices.create({ index: 'tao' })
 }
 
-function indexDocument (client, body, index) {
+function putMapping (client) {
+  return client.indices.putMapping({
+    index: 'tao',
+    type: 'file',
+    body: {
+      properties: {
+        fileName: {
+          type: 'text'
+        },
+        content: {
+          type: 'text'
+        },
+        suggest: {
+          type: 'completion'
+        }
+      }
+    }
+  })
+}
+
+function indexDocument (client, document, index) {
   return client.index({
     index: 'tao',
     type: 'file',
     id: index + 1,
-    body
+    body: document
   })
 }
 
@@ -28,9 +48,8 @@ function search (client, query, from = 0) {
     index: 'tao',
     body: {
       from,
-      size: 10,
       query: {
-        match: {
+        match_phrase: {
           content: query
         }
       },
@@ -49,5 +68,6 @@ module.exports = {
   createIndex,
   indexDocument,
   deleteDocuments,
-  search
+  search,
+  putMapping
 }
