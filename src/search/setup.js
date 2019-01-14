@@ -1,18 +1,20 @@
 const { promisify } = require('util')
 const glob = promisify(require('glob'))
 const { fs } = require('mz')
-const { indexExists, createIndex, indexDocument, deleteDocuments, deleteIndex } = require('./elasticsearch')
+const { indexExists, createIndex, indexDocument, putMapping, deleteDocuments, deleteIndex } = require('./elasticsearch')
 
 function cleanText (text) {
   return text
     .replace(/<style type=.+>(.|\n)*?<\/style>/ig, '')
-    .replace(/(<([^>]+)>|\r\n|\n|\r|\&nbsp;|\undefined)/ig, '')
+    .replace(/(<([^>]+)>|\r\n|\n|\r|\&nbsp;|undefined)/ig, '')
     .trim()
 }
 
 function init (client) {
   return indexExists(client)
-    .then(exists => exists ? destroy(client) : createIndex(client))
+    .then(exists => exists ? destroy(client) : '')
+    .then(() => createIndex(client))
+    .then(() => putMapping(client))
     .catch(console.error)
 }
 
@@ -42,10 +44,18 @@ async function readFiles (files) {
   return formattedFiles
 }
 
-function indexDocuments (client, documents) {
-  return documents.reduce((accumulator, document, index) => {
-    return accumulator.then(() => indexDocument(client, document, index))
-  }, Promise.resolve())
+async function indexDocuments (client, documents) {
+  let counter = 0
+  const indexedDocuments = []
+
+  for (const document of documents) {
+    const indexed = await indexDocument(client, document, counter)
+
+    indexedDocuments.push(indexed)
+    counter++
+  }
+
+  return indexedDocuments
 }
 
 function setup (client, path) {
