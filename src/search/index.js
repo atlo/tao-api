@@ -1,5 +1,5 @@
 require('dotenv').config()
 const setup = require('./setup')
-const { search } = require('./elasticsearch')
+const { search, suggest } = require('./elasticsearch')
 
-module.exports = { setup, search }
+module.exports = { setup, search, suggest }

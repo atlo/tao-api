@@ -1,21 +1,25 @@
 const { promisify } = require('util')
 const glob = promisify(require('glob'))
 const { fs } = require('mz')
+const stopwords = require('nltk-stopwords')
+const cheerio = require('cheerio')
 const { indexExists, createIndex, indexDocument, putMapping, deleteDocuments, deleteIndex } = require('./elasticsearch')
 
+const hungarian = stopwords.load('hungarian')
+
 function cleanText (text) {
-  return text
-    .replace(/<style type=.+>(.|\n)*?<\/style>/ig, '')
+  const cleanedText = text
     .replace(/(<([^>]+)>|\r\n|\n|\r|\&nbsp;|undefined)/ig, '')
+    .replace(/[^\w\sáéöóőüúűőöí]|\s+/ig, ' ')
     .trim()
+
+  return stopwords.remove(cleanedText, hungarian)  
 }
 
-function init (client) {
-  return indexExists(client)
-    .then(exists => exists ? destroy(client) : '')
-    .then(() => createIndex(client))
-    .then(() => putMapping(client))
-    .catch(console.error)
+function getText (html) {
+  $ = cheerio.load(html)
+
+  return $('body').text()
 }
 
 function destroy (client) {
@@ -24,51 +28,49 @@ function destroy (client) {
     .catch(error => error)
 }
 
+function init (client) {
+  return indexExists(client)
+    .then(exists => exists ? destroy(client) : '')
+    .then(() => createIndex(client))
+    .then(() => putMapping(client))
+    .catch(error => error)
+}
+
 function getFileList (path) {
   return glob(`${path}/**/*.html`)
 }
 
-async function readFiles (files) {
-  const formattedFiles = []
+async function indexFiles (client, files) {
+  try {
+    console.log(`${files.length} files to be indexed.`)
+    let counter = 0
 
-  for (const file of files) {
-    const content = await fs.readFile(file, 'utf8')
-    const cleanedContent = cleanText(content)
+    for (const fileName of files) {
+      console.log(`${counter}/510`)
+      const html = await fs.readFile(fileName, 'utf8')
+      const content = getText(html)
+      const suggest = cleanText(content).split(' ')
 
-    formattedFiles.push({
-      content: cleanedContent,
-      fileName: file
-    })
+      const document = {
+        content,
+        fileName,
+        suggest
+      }
+
+      await indexDocument(client, document, counter)
+
+      counter++
+    }
+  } catch (error) {
+    console.log(error)
+    return error
   }
-
-  return formattedFiles
-}
-
-async function indexDocuments (client, documents) {
-  let counter = 0
-  const indexedDocuments = []
-
-  for (const document of documents) {
-    const indexed = await indexDocument(client, document, counter)
-
-    indexedDocuments.push(indexed)
-    counter++
-  }
-
-  return indexedDocuments
 }
 
 function setup (client, path) {
   return init(client)
     .then(() => getFileList(path))
-    .then(files => {
-      console.log(`${files.length} files to be formatted.`)
-      return readFiles(files)
-    })
-    .then(files => {
-      console.log(`${files.length} to be indexed.`)
-      return indexDocuments(client, files)
-    })
+    .then(files => indexFiles(client, files))
     .catch(error => error)
 }
 

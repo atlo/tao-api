@@ -57,7 +57,27 @@ function search (client, query, from = 0) {
         fields: {
           content: {}
         }
+      },
+      _source: {
+        exclude: ['content', 'suggest']
       }
+    }
+  })
+}
+
+function suggest (client, query) {
+  return client.search({
+    index: 'tao',
+    body: {
+      suggest: {
+        content: {
+          prefix: query,
+          completion: {
+            field: 'suggest'
+          }
+        }
+      },
+      _source: false
     }
   })
 }
@@ -69,5 +89,6 @@ module.exports = {
   indexDocument,
   deleteDocuments,
   search,
-  putMapping
+  putMapping,
+  suggest
 }

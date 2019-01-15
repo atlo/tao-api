@@ -2,7 +2,7 @@ require('dotenv').config()
 const express = require('express')
 const elasticsearch = require('elasticsearch')
 const cors = require('cors')
-const { search } = require('./src/search')
+const { search, suggest } = require('./src/search')
 
 const app = express()
 const client = new elasticsearch.Client({
@@ -30,6 +30,23 @@ app.get('/search', function (req, res) {
       })
 
       resultObject.total = results.hits.total
+
+      res.status(200).json(resultObject)
+    })
+    .catch(error => res.status(500).json({ error: error.message }))
+})
+
+app.get('/suggest', function (req, res) {
+  const { query } = req.query
+  const resultObject = {
+    suggestions: []
+  }
+
+  suggest(client, query)
+    .then(results => {
+      resultObject.suggestions = results.suggest.content[0].options.map(suggest => {
+        return suggest.text
+      })
 
       res.status(200).json(resultObject)
     })
