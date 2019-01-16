@@ -49,8 +49,19 @@ function search (client, query, from = 0) {
     body: {
       from,
       query: {
-        match_phrase: {
-          content: query
+        bool: {
+          should: [
+            {
+              match_phrase: {
+                content: query
+              }
+            },
+            {
+              fuzzy: {
+                content: query
+              }
+            }
+          ]
         }
       },
       highlight: {
