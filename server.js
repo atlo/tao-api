@@ -14,7 +14,8 @@ const port = process.env.PORT
 app.use(cors())
 
 app.get('/search', function (req, res) {
-  const { query, from } = req.query
+  const { query, page } = req.query
+  const from = (page - 1) * 10
   const resultObject = {
     total: 0,
     files: []
