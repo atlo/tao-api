@@ -76,23 +76,6 @@ function search (client, query, from = 0) {
   })
 }
 
-function suggest (client, query) {
-  return client.search({
-    index: 'tao',
-    body: {
-      suggest: {
-        content: {
-          prefix: query,
-          completion: {
-            field: 'suggest'
-          }
-        }
-      },
-      _source: false
-    }
-  })
-}
-
 module.exports = {
   deleteIndex,
   indexExists,
@@ -100,6 +83,5 @@ module.exports = {
   indexDocument,
   deleteDocuments,
   search,
-  putMapping,
-  suggest
+  putMapping
 }

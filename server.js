@@ -2,7 +2,8 @@ require('dotenv').config()
 const express = require('express')
 const elasticsearch = require('elasticsearch')
 const cors = require('cors')
-const { search, suggest } = require('./src/search')
+const {prop} = require('ramda')
+const { search } = require('./src/search')
 
 const app = express()
 const client = new elasticsearch.Client({
@@ -12,6 +13,11 @@ const client = new elasticsearch.Client({
 const port = process.env.PORT
 
 app.use(cors())
+
+app.use(function (error, req, res, next) {
+  console.error(error.stack)
+  res.status(500).send({error: error.message})
+})
 
 app.get('/search', function (req, res) {
   const { query, page } = req.query
@@ -23,31 +29,18 @@ app.get('/search', function (req, res) {
 
   search(client, query, from)
     .then(results => {
-      resultObject.files = results.hits.hits.map(hit => {
-        return {
-          fileName: hit._source.fileName,
-          highlights: hit.highlight.content
-        }
-      })
+      const hits = prop('hits', prop('hits', results))
 
-      resultObject.total = results.hits.total
-
-      res.status(200).json(resultObject)
-    })
-    .catch(error => res.status(500).json({ error: error.message }))
-})
-
-app.get('/suggest', function (req, res) {
-  const { query } = req.query
-  const resultObject = {
-    suggestions: []
-  }
-
-  suggest(client, query)
-    .then(results => {
-      resultObject.suggestions = results.suggest.content[0].options.map(suggest => {
-        return suggest.text
-      })
+      if (hits) {
+        resultObject.files = hits.map(hit => {
+          return {
+            fileName: hit._source.fileName,
+            highlights: hit.highlight.content
+          }
+        })
+  
+        resultObject.total = results.hits.total
+      }
 
       res.status(200).json(resultObject)
     })
