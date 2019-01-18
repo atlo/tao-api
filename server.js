@@ -3,7 +3,10 @@ const express = require('express')
 const elasticsearch = require('elasticsearch')
 const cors = require('cors')
 const {prop} = require('ramda')
+const helmet = require('helmet')
+const morgan = require('morgan')
 const { search } = require('./src/search')
+const logger = require('./src/logger')
 
 const app = express()
 const client = new elasticsearch.Client({
@@ -13,15 +16,16 @@ const client = new elasticsearch.Client({
 const port = process.env.PORT
 
 app.use(cors())
-
+app.use(helmet())
+app.use(morgan('combined', { 'stream': logger.stream }))
 app.use(function (error, req, res, next) {
-  console.error(error.stack)
+  logger.error(error.stack)
   res.status(500).send({error: error.message})
 })
 
 app.get('/search', function (req, res) {
   const { query, page } = req.query
-  const from = (page - 1) * 10
+  const from = page ? (page - 1) * 10 : 0
   const resultObject = {
     total: 0,
     files: []
