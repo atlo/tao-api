@@ -25,9 +25,6 @@ function putMapping (client) {
         },
         content: {
           type: 'text'
-        },
-        suggest: {
-          type: 'completion'
         }
       }
     }
@@ -58,7 +55,11 @@ function search (client, query, from = 0) {
             },
             {
               fuzzy: {
-                content: query
+                content: {
+                  value: query,
+                  fuzziness: 1,
+                  prefix_length: 3
+                }
               }
             }
           ]
@@ -70,7 +71,7 @@ function search (client, query, from = 0) {
         }
       },
       _source: {
-        exclude: ['content', 'suggest']
+        exclude: ['content']
       }
     }
   })

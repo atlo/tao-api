@@ -49,12 +49,10 @@ async function indexFiles (client, files) {
       console.log(`${counter}/510`)
       const html = await fs.readFile(fileName, 'utf8')
       const content = getText(html)
-      const suggest = cleanText(content).split(' ')
 
       const document = {
         content,
-        fileName,
-        suggest
+        fileName
       }
 
       await indexDocument(client, document, counter)
