@@ -39,6 +39,7 @@ app.get('/search', function (req, res) {
         resultObject.files = hits.map(hit => {
           return {
             fileName: hit._source.fileName,
+            googleId: hit._source.googleId,
             highlights: hit.highlight.content
           }
         })

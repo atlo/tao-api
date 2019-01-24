@@ -16,11 +16,13 @@
     "elasticsearch": "^15.2.0",
     "express": "^4.16.4",
     "glob": "^7.1.3",
+    "googleapis": "^27.0.0",
     "helmet": "^3.15.0",
     "morgan": "^1.9.1",
     "mz": "^2.7.0",
     "nltk-stopwords": "^1.0.3",
     "ramda": "^0.26.1",
+    "readline": "^1.3.0",
     "winston": "^3.1.0",
     "winston-daily-rotate-file": "^3.6.0"
   }

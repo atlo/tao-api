@@ -3,6 +3,8 @@ const glob = promisify(require('glob'))
 const { fs } = require('mz')
 const stopwords = require('nltk-stopwords')
 const cheerio = require('cheerio')
+const {first, last, propOr} = require('ramda')
+const fileIds = require('./files')
 const { indexExists, createIndex, indexDocument, putMapping, deleteDocuments, deleteIndex } = require('./elasticsearch')
 
 const hungarian = stopwords.load('hungarian')
@@ -45,14 +47,20 @@ async function indexFiles (client, files) {
     console.log(`${files.length} files to be indexed.`)
     let counter = 0
 
-    for (const fileName of files) {
+    for (const path of files) {
       console.log(`${counter}/510`)
-      const html = await fs.readFile(fileName, 'utf8')
+      const html = await fs.readFile(path, 'utf8')
       const content = getText(html)
-
+      const fileName = last(path.split('/'))
+      const pdfFileName = fileName.replace(/.html/, '.pdf')
+      
+      const fileData = fileIds.find(file => file.name === pdfFileName)
+      const googleId = propOr('',  'id', fileData)
+      
       const document = {
         content,
-        fileName
+        fileName,
+        googleId
       }
 
       await indexDocument(client, document, counter)

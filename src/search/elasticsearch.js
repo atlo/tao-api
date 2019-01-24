@@ -23,6 +23,9 @@ function putMapping (client) {
         fileName: {
           type: 'text'
         },
+        googleId: {
+          type: 'text'
+        },
         content: {
           type: 'text'
         }
